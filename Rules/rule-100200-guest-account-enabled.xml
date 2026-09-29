@@ -1,0 +1,21 @@
+<group name="local, syslog, sshd, authentication_failed, ">
+
+<rule id="100101" level="10" frequency="3" timeframe="120">
+
+<if_matched_sid>5760</if_matched_sid>
+
+<same_source_ip />
+
+<description>Multiple SSH login failures observed from the same source IP</description>
+
+<mitre>
+
+<id>T1110</id>
+
+</mitre>
+
+<group>authentication_failed, ssh_bruteforce, credential_access, </group>
+
+</rule>
+
+</group>

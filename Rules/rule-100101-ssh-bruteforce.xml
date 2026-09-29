@@ -1,0 +1,22 @@
+<group name="adduser, windows, windos_security, account_changed, ">
+
+<rule id="100200" level="12">
+<if_sid>60103</if_sid>
+<field name="win.system.eventID">^4722$</field>
+<field name="win.eventdata. targetUserName">^Guest$</field>
+
+<description>Windows Guest account was enabled</description>
+
+<mitre>
+<id>T1078</id>
+</mitre>
+
+<group>
+windows,
+windows_account_management,
+account_enabled,
+guest_account,
+</group>
+</rule>
+
+</group>

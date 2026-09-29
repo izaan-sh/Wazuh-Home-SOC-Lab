@@ -12,6 +12,14 @@
 ![Status](https://img.shields.io/badge/Status-Active%20Monitoring-brightgreen?style=for-the-badge)
 
 
+
+![Wazuh](https://img.shields.io/badge/Wazuh-00A9E0?style=flat-square&logo=wazuh&logoColor=white)
+![SIEM](https://img.shields.io/badge/Security-SIEM%20%26%20XDR-000000?style=flat-square&logo=shield&logoColor=white)
+![Ubuntu](https://img.shields.io/badge/Ubuntu-E95420?style=flat-square&logo=ubuntu&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white)
+![Status](https://img.shields.io/badge/Status-Active%20Monitoring-brightgreen?style=flat-square)
+
+
 ---
 
 ## 📌 Executive Summary

@@ -31,7 +31,7 @@ The lab runs inside an isolated virtual network hosted on **Oracle VirtualBox**.
 | **Agent 002** | `IZAAN-Linux` (Ubuntu 24.04.5 LTS) | `192.168.68.130` (Exposed SSH target) |
 
 <p align="center">
-  <img src="path/to/Figure_3.1_Wazuh_Endpoints_Overview.png" alt="Wazuh Endpoints Overview" width="900" />
+  <img width="1918" height="1006" alt="Screenshot 2026-09-21 121809" src="https://github.com/user-attachments/assets/0d163cb8-921d-458f-8ab1-72fa4aa058ea" />
   <br><em>Figure 3.1 — Wazuh Manager displaying active Agent 001 (Windows) and Agent 002 (Linux).</em>
 </p>
 
@@ -45,7 +45,7 @@ The lab runs inside an isolated virtual network hosted on **Oracle VirtualBox**.
 - Deployed **Sysmon** on `IZAAN-Windows` to capture advanced process creation, network connection, and file system events beyond standard Windows Event Logs.
 
 <p align="center">
-  <img src="path/to/Figure_4.1_IZAAN_Windows_Agent_Overview.png" alt="Agent System Inventory & MITRE ATT&CK Breakdown" width="900" />
+  <img width="1919" height="1002" alt="Screenshot 2026-09-21 121857" src="https://github.com/user-attachments/assets/23617a7c-550f-4ecd-a9a2-9065788ba4bb" />
   <br><em>Figure 4.1 — IZAAN-Windows inventory and MITRE ATT&CK tactics breakdown derived from Sysmon events.</em>
 </p>
 
@@ -55,12 +55,12 @@ The lab runs inside an isolated virtual network hosted on **Oracle VirtualBox**.
 To verify log ingestion before engineering custom detections, baseline activity was generated across both hosts. Over the review window, the Windows endpoint logged over **22,000 total events**, including **49 high-severity alerts (Level 12+)**.
 
 <p align="center">
-  <img src="path/to/Figure_4.2_Threat_Hunting_View.png" alt="Threat Hunting View Metrics" width="900" />
+  <img width="1913" height="932" alt="Screenshot 2026-09-21 163140" src="https://github.com/user-attachments/assets/65da16ac-6f98-4e71-b359-9b7043adfcdc" />
   <br><em>Figure 4.2 — Threat Hunting view showing 22,028 total events and high-severity alert distributions.</em>
 </p>
 
 <p align="center">
-  <img src="path/to/Figure_4.3_Threat_Hunting_PCI_DSS.png" alt="Threat Hunting Compliance Metrics" width="900" />
+  <img width="1917" height="472" alt="Screenshot 2026-09-21 163203" src="https://github.com/user-attachments/assets/0608dc85-b1d1-48a6-94a4-84e9bfa390d2" />
   <br><em>Figure 4.3 — Top alert types, rule groups, and PCI DSS requirement mapping.</em>
 </p>
 
@@ -74,7 +74,7 @@ Built a custom Wazuh dashboard consolidating key operational metrics into a sing
 4. **Total User Account Modifications**
 
 <p align="center">
-  <img src="path/to/Figure_4.4_Custom_SOC_Dashboard.png" alt="Custom SOC Dashboard" width="900" />
+  <img width="1906" height="846" alt="Screenshot 2026-09-21 162518" src="https://github.com/user-attachments/assets/3f8cb67a-a621-41d3-805e-7c9ad4133374" />
   <br><em>Figure 4.4 — Custom SOC dashboard tracking authentication metrics and account changes.</em>
 </p>
 
@@ -86,7 +86,7 @@ Built a custom Wazuh dashboard consolidating key operational metrics into a sing
 Configured `syscheck` on a monitored path to track file modifications. Validation confirmed accurate categorization for file creation (`added`), modification (`modified`), and deletion (`deleted`).
 
 <p align="center">
-  <img src="path/to/Figure_4.5_FIM_Events.png" alt="File Integrity Monitoring Logs" width="900" />
+  <img width="1919" height="1004" alt="Screenshot 2026-09-21 161756" src="https://github.com/user-attachments/assets/0140f9ed-c68d-4f14-859d-b0bd9e4a052f" />
   <br><em>Figure 4.5 — FIM log table displaying file operations classified by rule ID.</em>
 </p>
 
@@ -98,12 +98,12 @@ Authored two original detection rules mapped directly to MITRE ATT&CK techniques
   * **Trigger:** Triggers when Windows Event ID `4722` targets the built-in "Guest" account.
 
 <p align="center">
-  <img src="path/to/Figure_4.6_Rule_100200_XML.png" alt="Rule 100200 XML Definition" width="900" />
+  <img width="1877" height="816" alt="Screenshot 2026-09-21 161131" src="https://github.com/user-attachments/assets/8ca463ed-0b01-40bc-82b5-85af4be9f914" />
   <br><em>Figure 4.6 — Rule 100200 configuration in local_rules.xml.</em>
 </p>
 
 <p align="center">
-  <img src="path/to/Figure_4.7_Rule_100200_Alert.png" alt="Rule 100200 Alert Execution" width="900" />
+  <img width="1465" height="529" alt="Screenshot 2026-09-21 162718" src="https://github.com/user-attachments/assets/08604e6a-69f8-43fb-9aa3-194e0609e096" />
   <br><em>Figure 4.7 — Alert generated when user "Bob" enabled the Guest account on IZAAN-Windows.</em>
 </p>
 
@@ -112,12 +112,12 @@ Authored two original detection rules mapped directly to MITRE ATT&CK techniques
   * **Trigger:** Triggers upon **3 failed SSH logins** from the same source IP within **120 seconds**.
 
 <p align="center">
-  <img src="path/to/Figure_4.8_Rule_100101_XML.png" alt="Rule 100101 XML Definition" width="900" />
+  <img width="1873" height="816" alt="Screenshot 2026-09-21 161208" src="https://github.com/user-attachments/assets/75c2a521-0b66-4074-9dba-bbcb7ad9c2d0" />
   <br><em>Figure 4.8 — Rule 100101 configuration for frequency-based detection in local_rules.xml.</em>
 </p>
 
 <p align="center">
-  <img src="path/to/Figure_4.9_Rule_100101_Alert.png" alt="Rule 100101 Alert Execution" width="900" />
+  <img width="1468" height="445" alt="Screenshot 2026-09-21 165408" src="https://github.com/user-attachments/assets/b71a07c7-b1fb-448a-9412-f60200adfd11" />
   <br><em>Figure 4.9 — Alert generated following repeated failed SSH attempts against IZAAN-Linux.</em>
 </p>
 
@@ -128,7 +128,7 @@ Authored two original detection rules mapped directly to MITRE ATT&CK techniques
 Configured Wazuh's **Active Response** mechanism to bind Rule `100101` to a `firewall-drop` action, executing `iptables` rules on `IZAAN-Linux` to automatically block the attacker's IP.
 
 <p align="center">
-  <img src="path/to/Figure_4.10_Active_Response_Event.png" alt="Active Response Execution Log" width="900" />
+  <img width="1475" height="512" alt="Screenshot 2026-09-21 162957" src="https://github.com/user-attachments/assets/9c7c8990-d989-45e0-b255-10460c68f3a0" />
   <br><em>Figure 4.10 — Active Response execution log confirming source IP addition to iptables.</em>
 </p>
 

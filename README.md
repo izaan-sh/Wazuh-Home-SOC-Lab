@@ -12,11 +12,6 @@
 ![Status](https://img.shields.io/badge/Status-Active%20Monitoring-brightgreen?style=for-the-badge)
 
 
-![GitHub repo size](https://img.shields.io/github/repo-size/your-username/your-repo-name?style=flat-square)
-![GitHub last commit](https://img.shields.io/github/last-commit/your-username/your-repo-name?style=flat-square)
-
-
-
 ---
 
 ## 📌 Executive Summary

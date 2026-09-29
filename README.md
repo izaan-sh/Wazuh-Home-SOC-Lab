@@ -9,7 +9,7 @@
 ![SIEM](https://img.shields.io/badge/Security-SIEM%20%26%20XDR-000000?style=for-the-badge&logo=shield&logoColor=white)
 ![Ubuntu](https://img.shields.io/badge/Ubuntu-E95420?style=for-the-badge&logo=ubuntu&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
-![Status](https://img.shields.io/badge/Status-Active%20Monitoring-brightgreen?style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-Complete-brightgreen?style=for-the-badge)
 
 
 ---

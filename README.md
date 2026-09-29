@@ -4,6 +4,14 @@
 **Author:** Izaan Shumaiz | Cybersecurity & AI Graduate  
 **Build Period:** September 15–17, 2026 | **Report Date:** September 20, 2026  
 
+
+![Wazuh](https://img.shields.io/badge/Wazuh-00A9E0?style=for-the-badge&logo=wazuh&logoColor=white)
+![SIEM](https://img.shields.io/badge/Security-SIEM%20%26%20XDR-000000?style=for-the-badge&logo=shield&logoColor=white)
+![Ubuntu](https://img.shields.io/badge/Ubuntu-E95420?style=for-the-badge&logo=ubuntu&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![Status](https://img.shields.io/badge/Status-Active%20Monitoring-brightgreen?style=for-the-badge)
+
+
 ---
 
 ## 📌 Executive Summary

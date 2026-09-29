@@ -1,623 +1,166 @@
-# Wazuh Home SOC Lab
+# 🛡️ Home SOC Lab: Security Monitoring, Detection Engineering & Active Response
 
-### Security Monitoring, Detection Engineering & Active Response
-
-A hands-on home Security Operations Center (SOC) lab built around **Wazuh** to practice endpoint monitoring, security telemetry collection, threat hunting, detection engineering, File Integrity Monitoring (FIM), and automated incident response.
-
-The lab monitors both **Windows and Linux endpoints**, extends Windows visibility using **Sysmon**, includes custom detection rules mapped to **MITRE ATT&CK**, and uses Wazuh Active Response to automatically contain SSH brute-force activity.
-
-> **Lab build:** September 15–17, 2026
-> **Platform:** Wazuh 4.14.7
-> **Environment:** Oracle VirtualBox
-> **Focus:** SOC Operations / Blue Team / Detection Engineering
+**Platform:** Wazuh SIEM/XDR  
+**Author:** Izaan Shumaiz | Cybersecurity & AI Graduate  
+**Build Period:** September 15–17, 2026 | **Report Date:** September 20, 2026  
 
 ---
 
-## 1. Project Overview
+## 📌 Executive Summary
 
-The objective of this project was to build a functional SOC environment rather than simply install a SIEM and collect logs.
+This project documents the design, deployment, and practical validation of a home Security Operations Center (SOC) lab built on **Wazuh** (v4.14.7). The project extends beyond standard setup to demonstrate end-to-end security operations across heterogeneous endpoints (Windows and Ubuntu Linux). Key achievements include:
 
-The lab was designed to demonstrate the complete security monitoring lifecycle:
-
-```text
-Endpoint Activity
-       ↓
-Telemetry Collection
-       ↓
-Wazuh SIEM / XDR
-       ↓
-Detection Engineering
-       ↓
-Alert Investigation
-       ↓
-Automated Response
-       ↓
-Containment
-       ↓
-Recovery & Validation
-```
-
-The environment includes two monitored endpoints:
-
-* **Windows 10 Pro** endpoint with Sysmon
-* **Ubuntu Linux** endpoint with SSH exposed for controlled brute-force testing
-
-The project also included:
-
-* Custom Wazuh monitoring dashboard
-* File Integrity Monitoring
-* Custom XML detection rules
-* MITRE ATT&CK mapping
-* SSH brute-force detection
-* Windows Guest account detection
-* Automated firewall-based IP blocking
-* Manual containment and recovery validation
-
-Every major capability was tested using activity generated inside the lab rather than being considered complete based only on configuration.
+- Enrolling and monitoring heterogeneous agents.
+- Extending Windows telemetry with **Sysmon**.
+- Developing original correlation rules mapped to the **MITRE ATT&CK** framework.
+- Configuring automated **Active Response** for SSH brute-force mitigation.
+- Building a customized operational SOC dashboard.
+- Validating the complete **Detect → Respond → Recover** lifecycle through hands-on attack simulations.
 
 ---
 
-# 2. Objectives
+## 📐 Architecture & Environment
 
-The main objectives of the lab were to:
+The lab runs inside an isolated virtual network hosted on **Oracle VirtualBox**.
 
-* Deploy a functional Wazuh manager and enroll Windows and Linux endpoints.
-* Extend Windows telemetry using Sysmon.
-* Generate and review endpoint activity before creating custom detections.
-* Build a centralized SOC monitoring dashboard.
-* Configure File Integrity Monitoring.
-* Develop custom Wazuh detection rules.
-* Map detections to MITRE ATT&CK techniques.
-* Configure automated Active Response.
-* Validate the complete **detect → respond → recover** workflow.
+| Resource | Role / Specifications | IP Address / Details |
+| :--- | :--- | :--- |
+| **Hypervisor** | Oracle VirtualBox (32 GB RAM Host) | Isolated Segment: `192.168.68.0/24` |
+| **SIEM / XDR** | **Wazuh v4.14.7** Manager (`node01`) | Central log collector, correlator, and alert engine |
+| **Agent 001** | `IZAAN-Windows` (Windows 10 Pro) | `192.168.68.131` (2 vCPU / 4 GB RAM + Sysmon) |
+| **Agent 002** | `IZAAN-Linux` (Ubuntu 24.04.5 LTS) | `192.168.68.130` (Exposed SSH target) |
 
----
-
-# 3. Lab Architecture
-
-The lab was built entirely within **Oracle VirtualBox** on a Windows host using an isolated virtual network.
-
-```text
-                         ┌──────────────────────┐
-                         │    Wazuh Manager     │
-                         │       node01         │
-                         │     Wazuh 4.14.7     │
-                         └──────────┬───────────┘
-                                    │
-                     ┌──────────────┴──────────────┐
-                     │                             │
-              ┌──────▼───────┐             ┌──────▼───────┐
-              │ Windows 10    │             │ Ubuntu Linux │
-              │ IZAAN-Windows │             │ IZAAN-Linux  │
-              │               │             │              │
-              │ + Sysmon      │             │ + SSH        │
-              └───────────────┘             └──────────────┘
-```
-
-### Environment
-
-| Component          | Configuration      |
-| ------------------ | ------------------ |
-| Hypervisor         | Oracle VirtualBox  |
-| Host               | Windows PC         |
-| Host RAM           | 32 GB              |
-| SIEM/XDR           | Wazuh 4.14.7       |
-| Manager            | `node01`           |
-| Network            | `192.168.68.0/24`  |
-| Windows Agent      | `IZAAN-Windows`    |
-| Windows IP         | `192.168.68.131`   |
-| Windows Version    | Windows 10 Pro     |
-| Windows Resources  | 2 vCPU / 4 GB RAM  |
-| Windows Telemetry  | Sysmon             |
-| Linux Agent        | `IZAAN-Linux`      |
-| Linux IP           | `192.168.68.130`   |
-| Linux Version      | Ubuntu 24.04.5 LTS |
-| Linux Test Service | SSH                |
-
-Both endpoints were successfully enrolled with the Wazuh manager and reported as active.
+<p align="center">
+  <img src="path/to/Figure_3.1_Wazuh_Endpoints_Overview.png" alt="Wazuh Endpoints Overview" width="900" />
+  <br><em>Figure 3.1 — Wazuh Manager displaying active Agent 001 (Windows) and Agent 002 (Linux).</em>
+</p>
 
 ---
 
-# 4. Phase 1 — Wazuh Manager Deployment
+## 🚀 Implementation Phases
 
-The first stage was deploying the Wazuh manager as the central SOC component.
+### Phase 1 & 2: Infrastructure Deployment & Telemetry Enrichment
+- Deployed a single-node **Wazuh Manager** (`node01`) for central indexing and correlation.
+- Enrolled `IZAAN-Windows` and `IZAAN-Linux` endpoints.
+- Deployed **Sysmon** on `IZAAN-Windows` to capture advanced process creation, network connection, and file system events beyond standard Windows Event Logs.
 
-The manager was responsible for:
-
-* Endpoint log collection
-* Event processing
-* Alert generation
-* Detection rule processing
-* Correlation
-* Centralized monitoring
-
-The Wazuh manager acted as the central point of visibility for both endpoints.
-
-### Evidence
-
-![Wazuh Endpoints](screenshots/01-wazuh-endpoints.png)
+<p align="center">
+  <img src="path/to/Figure_4.1_IZAAN_Windows_Agent_Overview.png" alt="Agent System Inventory & MITRE ATT&CK Breakdown" width="900" />
+  <br><em>Figure 4.1 — IZAAN-Windows inventory and MITRE ATT&CK tactics breakdown derived from Sysmon events.</em>
+</p>
 
 ---
 
-# 5. Phase 2 — Endpoint Enrollment & Sysmon
+### Phase 3: Telemetry Ingestion & Threat Hunting
+To verify log ingestion before engineering custom detections, baseline activity was generated across both hosts. Over the review window, the Windows endpoint logged over **22,000 total events**, including **49 high-severity alerts (Level 12+)**.
 
-Two heterogeneous endpoints were enrolled into the Wazuh manager:
+<p align="center">
+  <img src="path/to/Figure_4.2_Threat_Hunting_View.png" alt="Threat Hunting View Metrics" width="900" />
+  <br><em>Figure 4.2 — Threat Hunting view showing 22,028 total events and high-severity alert distributions.</em>
+</p>
 
-### Windows
-
-`IZAAN-Windows`
-
-Windows 10 Pro was configured with **Sysmon** to provide additional endpoint telemetry.
-
-Sysmon provided visibility into activity such as:
-
-* Process creation
-* Network connections
-* File-related events
-
-This extended the visibility available from native Windows Event Logs.
-
-### Linux
-
-`IZAAN-Linux`
-
-The Ubuntu endpoint was enrolled for Linux security monitoring and used as the target for the controlled SSH brute-force simulation.
-
-The resulting telemetry was visible within Wazuh's endpoint and MITRE ATT&CK views.
-
-![Windows Agent Overview](screenshots/02-windows-agent-overview.png)
+<p align="center">
+  <img src="path/to/Figure_4.3_Threat_Hunting_PCI_DSS.png" alt="Threat Hunting Compliance Metrics" width="900" />
+  <br><em>Figure 4.3 — Top alert types, rule groups, and PCI DSS requirement mapping.</em>
+</p>
 
 ---
 
-# 6. Phase 3 — Telemetry Generation & Threat Hunting
+### Phase 4: Operational SOC Dashboard
+Built a custom Wazuh dashboard consolidating key operational metrics into a single view:
+1. **Failed Windows Logons**
+2. **Linux SSH Authentication Activity by Source IP**
+3. **Windows Account Change Trends**
+4. **Total User Account Modifications**
 
-Before creating custom detections, activity was generated on both endpoints to verify that telemetry was reaching Wazuh correctly.
-
-The Windows endpoint alone generated:
-
-* **22,028 total events**
-* **49 alerts at level 12 or above**
-* **9 failed authentications**
-* **6 successful authentications**
-
-The events originated from multiple telemetry sources including:
-
-* Sysmon
-* Windows Security/Application logs
-* Vulnerability Detection
-* Security Configuration Assessment (SCA)
-
-This confirmed that the telemetry pipeline was functioning before detection engineering was performed.
-
-![Threat Hunting](screenshots/03-threat-hunting.png)
+<p align="center">
+  <img src="path/to/Figure_4.4_Custom_SOC_Dashboard.png" alt="Custom SOC Dashboard" width="900" />
+  <br><em>Figure 4.4 — Custom SOC dashboard tracking authentication metrics and account changes.</em>
+</p>
 
 ---
 
-# 7. Phase 4 — Custom SOC Dashboard
+### Phase 5: File Integrity Monitoring (FIM) & Custom Detections
 
-A custom Wazuh dashboard was created to provide an operational overview of important security activity.
+#### 1. File Integrity Monitoring (`syscheck`)
+Configured `syscheck` on a monitored path to track file modifications. Validation confirmed accurate categorization for file creation (`added`), modification (`modified`), and deletion (`deleted`).
 
-The dashboard focused on:
+<p align="center">
+  <img src="path/to/Figure_4.5_FIM_Events.png" alt="File Integrity Monitoring Logs" width="900" />
+  <br><em>Figure 4.5 — FIM log table displaying file operations classified by rule ID.</em>
+</p>
 
-* Failed Windows logons
-* Linux SSH authentication activity by source
-* Windows account-change activity over time
-* Total user-account modifications
+#### 2. Custom Detection Rules (`local_rules.xml`)
+Authored two original detection rules mapped directly to MITRE ATT&CK techniques:
 
-This provided a centralized view for monitoring authentication and account activity without having to manually perform individual searches for each signal.
+* **Rule 100200 (Level 12) — Guest Account Enabled**
+  * **MITRE ATT&CK:** [T1078 (Valid Accounts)](https://attack.mitre.org/techniques/T1078/)
+  * **Trigger:** Triggers when Windows Event ID `4722` targets the built-in "Guest" account.
 
-The dashboard recorded **74 user modifications** during the monitored period.
+<p align="center">
+  <img src="path/to/Figure_4.6_Rule_100200_XML.png" alt="Rule 100200 XML Definition" width="900" />
+  <br><em>Figure 4.6 — Rule 100200 configuration in local_rules.xml.</em>
+</p>
 
-![Custom SOC Dashboard](screenshots/04-soc-dashboard.png)
+<p align="center">
+  <img src="path/to/Figure_4.7_Rule_100200_Alert.png" alt="Rule 100200 Alert Execution" width="900" />
+  <br><em>Figure 4.7 — Alert generated when user "Bob" enabled the Guest account on IZAAN-Windows.</em>
+</p>
 
----
+* **Rule 100101 (Level 10) — SSH Brute-Force Threshold**
+  * **MITRE ATT&CK:** [T1110 (Brute Force)](https://attack.mitre.org/techniques/T1110/)
+  * **Trigger:** Triggers upon **3 failed SSH logins** from the same source IP within **120 seconds**.
 
-# 8. Phase 5 — File Integrity Monitoring
+<p align="center">
+  <img src="path/to/Figure_4.8_Rule_100101_XML.png" alt="Rule 100101 XML Definition" width="900" />
+  <br><em>Figure 4.8 — Rule 100101 configuration for frequency-based detection in local_rules.xml.</em>
+</p>
 
-Wazuh File Integrity Monitoring (`syscheck`) was enabled on a monitored directory.
-
-The FIM functionality was validated by performing three types of file activity:
-
-```text
-Create File
-    ↓
-Modify File
-    ↓
-Delete File
-```
-
-Each action generated the expected event type:
-
-* Added
-* Modified
-* Deleted
-
-This confirmed that the monitored directory was being tracked correctly.
-
-![File Integrity Monitoring](screenshots/05-fim-events.png)
+<p align="center">
+  <img src="path/to/Figure_4.9_Rule_100101_Alert.png" alt="Rule 100101 Alert Execution" width="900" />
+  <br><em>Figure 4.9 — Alert generated following repeated failed SSH attempts against IZAAN-Linux.</em>
+</p>
 
 ---
 
-# 9. Detection Engineering
+### Phase 6: Automated Active Response
 
-One of the main goals of the project was to go beyond Wazuh's default ruleset.
+Configured Wazuh's **Active Response** mechanism to bind Rule `100101` to a `firewall-drop` action, executing `iptables` rules on `IZAAN-Linux` to automatically block the attacker's IP.
 
-Two custom detection rules were created in:
-
-```text
-local_rules.xml
-```
-
-The rules were designed around specific attack scenarios and mapped to MITRE ATT&CK techniques.
+<p align="center">
+  <img src="path/to/Figure_4.10_Active_Response_Event.png" alt="Active Response Execution Log" width="900" />
+  <br><em>Figure 4.10 — Active Response execution log confirming source IP addition to iptables.</em>
+</p>
 
 ---
 
-## 9.1 Rule 100101 — SSH Brute Force
+## 🧪 Attack Simulation & Validation Matrix
 
-### Objective
+Every detection and response capability was manually tested and validated:
 
-Detect repeated failed SSH authentication attempts originating from the same source IP.
-
-### Detection Logic
-
-```text
-3 or more failed SSH authentications
-            +
-Same source IP
-            +
-Within 120 seconds
-            ↓
-       Rule 100101
-```
-
-### Configuration
-
-| Attribute    | Value               |
-| ------------ | ------------------- |
-| Rule ID      | `100101`            |
-| Level        | 10                  |
-| Frequency    | 3                   |
-| Timeframe    | 120 seconds         |
-| Attack       | SSH Brute Force     |
-| MITRE ATT&CK | T1110 — Brute Force |
-
-The rule fires when three or more failed SSH authentication attempts occur from the same source IP within the configured timeframe.
-
-### Rule Source
-
-The rule source is available in:
-
-```text
-Rules/rule-100101-ssh-bruteforce.xml
-```
-
-![SSH Brute Force Rule](screenshots/08-ssh-bruteforce-rule.png)
-
-### Validation
-
-Repeated failed SSH authentication attempts were generated against the Ubuntu endpoint.
-
-The custom rule successfully generated an alert once the configured threshold was reached.
-
-![SSH Brute Force Alert](screenshots/09-ssh-bruteforce-alert.png)
+| Scenario | Attack Trigger | Expected Detection | Observed Result & Containment Verification |
+| :--- | :--- | :--- | :--- |
+| **SSH Brute Force** | Repeated failed SSH logons from target IP | **Rule 100101** (T1110) | Alert generated; Active Response automatically appended the source IP to `iptables`. |
+| **Containment Verification** | ICMP `ping` + SSH login attempt from blocked IP | Traffic drop via `firewall-drop` | `ping` returned *Connection Timed Out*; SSH returned *Permission Denied*. |
+| **Recovery** | Manual removal of IP from `iptables` | Network restoration | ICMP connectivity and SSH access fully restored. |
+| **Guest Account Enabled** | Enabled native Guest account on Windows host | **Rule 100200** (T1078) | Alert generated capturing actor (`Bob`) and target (`Guest`). |
+| **File Tampering** | File creation, modification, and deletion in watched directory | `syscheck` FIM rules | All 3 event types (`added`, `modified`, `deleted`) accurately categorized. |
 
 ---
 
-# 10. Rule 100200 — Windows Guest Account Enabled
+## 🧰 Skills & Technologies Demonstrated
 
-### Objective
-
-Detect the enabling of the built-in Windows Guest account.
-
-The detection uses Windows **Event ID 4722**, targeting the `Guest` account.
-
-### Configuration
-
-| Attribute        | Value                  |
-| ---------------- | ---------------------- |
-| Rule ID          | `100200`               |
-| Level            | 12                     |
-| Windows Event ID | `4722`                 |
-| Target Account   | `Guest`                |
-| MITRE ATT&CK     | T1078 — Valid Accounts |
-
-The rule was designed to identify an account state change that could introduce an additional valid account into the Windows environment.
-
-### Rule Source
-
-```text
-Rules/rule-100200-guest-account-enabled.xml
-```
-
-![Guest Account Rule](screenshots/06-guest-account-rule.png)
-
-### Validation
-
-The Guest account was enabled on the Windows endpoint.
-
-Wazuh generated the expected alert and captured the relevant event context, including the source user and target account.
-
-![Guest Account Alert](screenshots/07-guest-account-alert.png)
+- **SIEM / XDR Administration:** Wazuh Manager deployment, agent enrollment, and XML-based rule tuning.
+- **Telemetry & Logging:** Sysmon XML deployment for process and network visibility on Windows endpoints.
+- **Detection Engineering:** Rule creation with custom frequency, level, and timeframe parameters mapped to MITRE ATT&CK techniques.
+- **SOAR / Automated Response:** Configuration of host-based `iptables` Active Response scripts for real-time containment.
+- **Threat Hunting & Dashboards:** Custom dashboard creation and log analysis.
+- **Virtual Network Isolation:** Host-only virtual networking inside Oracle VirtualBox.
 
 ---
 
-# 11. Phase 6 — Active Response
-
-The SSH brute-force detection was extended beyond alert generation by configuring **Wazuh Active Response**.
-
-The objective was to automatically contain the source IP after Rule `100101` fired.
-
-### Response Workflow
-
-```text
-SSH Brute Force
-       ↓
-Rule 100101
-       ↓
-Wazuh Alert
-       ↓
-Active Response Triggered
-       ↓
-firewall-drop
-       ↓
-Source IP Added to iptables
-       ↓
-Traffic Blocked
-```
-
-The Active Response configuration used Wazuh's `firewall-drop` response to add the offending source IP to `iptables` on the Linux endpoint.
-
-![Active Response](screenshots/10-active-response.png)
-
----
-
-# 12. Attack Simulation & Validation
-
-The lab was validated using controlled attack activity rather than relying only on configuration.
-
-## Scenario 1 — SSH Brute Force
-
-### Trigger
-
-Repeated failed SSH logins from one source IP.
-
-### Expected Detection
-
-Rule `100101` fires.
-
-### Observed Result
-
-* Wazuh generated the alert.
-* Active Response automatically blocked the source IP.
-* The offending IP was added to `iptables`.
-
----
-
-## Scenario 2 — Containment Validation
-
-After the IP was blocked, connectivity was tested independently.
-
-### Tests
-
-```text
-Ping → Target
-SSH  → Target
-```
-
-### Result
-
-```text
-Ping
-→ Connection timed out
-
-SSH
-→ Permission denied
-```
-
-This confirmed that the firewall response had actually taken effect rather than simply generating an Active Response event.
-
----
-
-## Scenario 3 — Recovery
-
-The blocked IP was manually removed from `iptables`.
-
-Connectivity and login access returned to normal, completing the:
-
-```text
-Detect → Respond → Recover
-```
-
-cycle.
-
-![Containment Validation](screenshots/11-containment-validation.png)
-
-![Recovery Validation](screenshots/12-recovery-validation.png)
-
----
-
-# 13. Validation Summary
-
-| Scenario        | Trigger                          | Detection / Response          | Result                             |
-| --------------- | -------------------------------- | ----------------------------- | ---------------------------------- |
-| SSH Brute Force | Repeated failed SSH logins       | Rule 100101 + Active Response | Source IP automatically blocked    |
-| Containment     | Ping + SSH against blocked IP    | `iptables` firewall drop      | Ping timed out and SSH was denied  |
-| Recovery        | Remove blocked IP                | Manual `iptables` cleanup     | Connectivity restored              |
-| Guest Account   | Guest account enabled            | Rule 100200                   | Alert generated with event context |
-| File Tampering  | Create / modify / delete files   | Wazuh FIM                     | All three event types detected     |
-| Account Changes | Windows user/group modifications | Custom dashboard              | 74 modifications tracked           |
-
----
-
-# 14. Skills Demonstrated
-
-### SIEM / XDR
-
-* Wazuh manager deployment
-* Agent enrollment
-* Windows and Linux monitoring
-* Wazuh ruleset customization
-* Active Response configuration
-
-### Endpoint Telemetry
-
-* Sysmon deployment
-* Windows endpoint monitoring
-* Security event analysis
-* Process and network telemetry
-
-### Detection Engineering
-
-* Custom XML detection rules
-* Rule level tuning
-* Frequency and timeframe configuration
-* MITRE ATT&CK mapping
-* Brute-force detection
-* Account-state-change detection
-
-### Incident Response
-
-* Alert investigation
-* Attack simulation
-* Automated containment
-* Firewall-based IP blocking
-* Recovery validation
-
-### Host & Network Security
-
-* `iptables`
-* Source IP blocking
-* Automated firewall response
-* Manual recovery and cleanup
-
-### Monitoring & Threat Hunting
-
-* Wazuh Threat Hunting
-* Custom dashboards
-* File Integrity Monitoring
-* Authentication monitoring
-* Account-change monitoring
-
-### Virtualization
-
-* Oracle VirtualBox
-* Multi-VM isolated SOC environment
-* Windows and Linux endpoint integration
-
-These capabilities correspond to the skills and tooling documented in the project report.
-
----
-
-# 15. Project Results
-
-The completed lab demonstrated a functional security monitoring and response pipeline covering:
-
-```text
-                ┌─────────────────┐
-                │ Endpoint Events │
-                └────────┬────────┘
-                         ↓
-                ┌─────────────────┐
-                │ Wazuh Telemetry │
-                └────────┬────────┘
-                         ↓
-                ┌─────────────────┐
-                │ Detection Rules │
-                └────────┬────────┘
-                         ↓
-                ┌─────────────────┐
-                │ Alert / Triage  │
-                └────────┬────────┘
-                         ↓
-                ┌─────────────────┐
-                │ Active Response │
-                └────────┬────────┘
-                         ↓
-                ┌─────────────────┐
-                │   Containment   │
-                └────────┬────────┘
-                         ↓
-                ┌─────────────────┐
-                │    Recovery     │
-                └─────────────────┘
-```
-
-The project demonstrated that the detections and response mechanisms worked against generated activity rather than existing only as untested configurations.
-
-The lab successfully combined:
-
-* Endpoint telemetry
-* SIEM monitoring
-* Detection engineering
-* MITRE ATT&CK mapping
-* File Integrity Monitoring
-* Threat hunting
-* Automated containment
-* Recovery validation
-
----
-
-# 16. Repository Structure
-
-```text
-wazuh-home-soc-lab/
-│
-├── README.md
-│
-├── Rules/
-│   ├── rule-100101-ssh-bruteforce.xml
-│   └── rule-100200-guest-account-enabled.xml
-│
-├── Active-Response/
-│   └── firewall-drop.md
-│
-└── screenshots/
-    ├── 01-wazuh-endpoints.png
-    ├── 02-windows-agent-overview.png
-    ├── 03-threat-hunting.png
-    ├── 04-soc-dashboard.png
-    ├── 05-fim-events.png
-    ├── 06-guest-account-rule.png
-    ├── 07-guest-account-alert.png
-    ├── 08-ssh-bruteforce-rule.png
-    ├── 09-ssh-bruteforce-alert.png
-    ├── 10-active-response.png
-    ├── 11-containment-validation.png
-    └── 12-recovery-validation.png
-```
-
----
-
-# 17. Future Improvements
-
-The current lab provides a foundation that can be extended into a broader detection and response environment.
-
-Potential future improvements include:
-
-### Atomic Red Team
-
-Introduce structured attack simulations using **Atomic Red Team** to test detection coverage against a broader range of MITRE ATT&CK techniques.
-
-### SOAR Integration
-
-Add a dedicated SOAR or case-management platform such as **TheHive** or **Shuffle** to extend the current Active Response workflow into broader incident orchestration and case management.
-
-### Network Detection
-
-Integrate a network-level IDS such as **Suricata** or **Zeek** alongside the existing host-based telemetry.
-
-These extensions would allow the lab to move beyond individual detection scenarios toward broader attack simulation, network visibility, and incident orchestration.
-
----
-
-# 18. Conclusion
-
-This project resulted in a functional home SOC environment capable of monitoring Windows and Linux endpoints, collecting security telemetry, detecting suspicious activity, investigating alerts, and automatically responding to a confirmed brute-force scenario.
-
-The main focus was not simply configuring Wazuh, but validating the entire security workflow through controlled activity:
-
-**Detect → Investigate → Respond → Contain → Recover**
-
-The project also provided practical experience with SIEM administration, endpoint telemetry, detection engineering, MITRE ATT&CK mapping, threat hunting, File Integrity Monitoring, firewall-based containment, and incident validation.
-
-The custom detection rules and Active Response workflow demonstrate how a SIEM can be extended beyond default monitoring capabilities to support a more operational SOC workflow.
+## 🎯 Next Steps & Future Enhancements
+
+- [ ] Integrate **Atomic Red Team** scripts to test additional MITRE ATT&CK techniques.
+- [ ] Connect a dedicated case management platform like **Shuffle SOAR** or **TheHive**.
+- [ ] Incorporate network-level IDS telemetry using **Suricata** or **Zeek**.

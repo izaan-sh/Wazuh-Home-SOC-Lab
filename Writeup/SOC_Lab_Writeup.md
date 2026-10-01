@@ -25,20 +25,20 @@ Just as importantly, I didn't take any of it on faith. Every rule and every resp
 The lab is a small hub-and-spoke SOC: a single Wazuh manager acting as the central log collection, correlation, and alerting point, with two monitored endpoints reporting into it over an isolated network segment.
 
 ```
-                      ┌─────────────────────────┐
+                      ┌──────────────────────────┐
                       │   Wazuh Manager (node01) │
                       │        v4.14.7           │
                       └────────────┬─────────────┘
                                    │  192.168.68.0/24
-                 ┌─────────────────┴──────────────────┐
-                 │                                     │
-     ┌───────────▼───────────┐            ┌────────────▼───────────┐
-     │   IZAAN-Windows        │            │   IZAAN-Linux           │
-     │   Windows 10 Pro        │            │   Ubuntu 24.04.5 LTS    │
-     │   + Sysmon               │            │   SSH exposed for       │
-     │   192.168.68.131         │            │   brute-force testing   │
-     │                           │            │   192.168.68.130        │
-     └───────────────────────────┘            └─────────────────────────┘
+                 ┌─────────────────┴────────────────────┐
+                 │                                      │
+     ┌───────────▼───────────┐            ┌─────────────▼───────────┐
+     │   IZAAN-Windows       │            │   IZAAN-Linux           │
+     │   Windows 10 Pro      │            │   Ubuntu 24.04.5 LTS    │
+     │   + Sysmon            │            │   SSH exposed for       │
+     │   192.168.68.131      │            │   brute-force testing   │
+     │                       │            │   192.168.68.130        │
+     └───────────────────────┘            └─────────────────────────┘
 ```
 
 All three VMs run in Oracle VirtualBox on a Windows host, sharing one isolated network so the "attacker" traffic never leaves the lab.
